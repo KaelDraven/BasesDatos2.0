@@ -1,1 +1,64 @@
-dasd
+SET serveroutput ON;
+--1***generar la tabla dance con id_dance PK,nombre,edad
+create table dance(
+id_dance integer,
+nombre varchar2(20),
+edad integer,
+constraint pk_id_dance primary key (id_dance)
+);
+/
+--2*generar los siguientes registros 1,'juan',16: 2,'pedro',20: 3,'luis',45: 4,'jose',70:
+
+insert into dance values(1,'juan',16);
+-- despues hacer un select //select * from dance;
+select * from dance;
+--obtener reporte (select) con lo siguiente imprimir el nombre y la edad del cliente : si el cliente es menor de 18 años debe aparecer en una nueva columna "Precos" y si es mayor
+--de edad "viejo"
+set serveroutput on;
+/
+declare 
+estatus varchar2(20);
+cursor repo is select * from dance;
+begin
+for fila in repo loop
+if fila.edad<18 then
+estatus:='precoz';
+dbms_output.put_line('nombre '||fila.nombre||' edad '||fila.edad||' estatus '||estatus);
+else
+estatus:='viejo';
+dbms_output.put_line('nombre '||fila.nombre||' edad '||fila.edad||' estatus '||estatus);
+end if;
+end loop;
+end;
+/
+--imprimier el siguiente esquema crear las tablas de trabajador y nomina con sus campos 
+create table trabajador (
+seguro integer,
+nombre varchar2(25),
+edad integer,
+constraint pk_seguro primary key (seguro)
+);
+/
+create table nomina(
+id_nomina integer,
+seguro integer,
+sueldo_base float,
+horas_laboradas integer,
+fecha_pago date,
+constraint pk_id_nomina primary key(id_nomina),
+constraint fk_seguro foreign key (seguro) references trabajador(seguro)
+
+);
+/
+--llenar los siguientes datos 
+insert into trabajador values(1,'ana',28);
+insert into trabajador values(2,'pedro',40);
+insert into trabajador values(3,'juan',35);
+insert into trabajador values(4,'karla',41);
+/
+insert into nomina values(1,1,6000,40);
+insert into nomina values(2,2,8000,30);
+insert into nomina values(3,3,8000,42);
+insert into nomina values(4,4,10000,48);
+/
+select * from nomina;
