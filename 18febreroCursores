@@ -1,0 +1,169 @@
+SET serveroutput ON;
+--1***generar la tabla dance con id_dance PK,nombre,edad
+CREATE TABLE dance
+  (
+    id_dance INTEGER,
+    nombre   VARCHAR2(20),
+    edad     INTEGER,
+    CONSTRAINT pk_id_dance PRIMARY KEY (id_dance)
+  );
+/
+--2*generar los siguientes registros 1,'juan',16: 2,'pedro',20: 3,'luis',45: 4,'jose',70:
+INSERT
+INTO dance VALUES
+  (
+    1,
+    'juan',
+    16
+  );
+INSERT INTO dance VALUES
+  ( 2,'pedro',20
+  );
+INSERT INTO dance VALUES
+  ( 3,'luis',45
+  );
+INSERT INTO dance VALUES
+  (4,'jose',70
+  );
+-- despues hacer un select //select * from dance;
+SELECT * FROM dance;
+--obtener reporte (select) con lo siguiente imprimir el nombre y la edad del cliente : si el cliente es menor de 18 años debe aparecer en una nueva columna "Precos" y si es mayor
+--de edad "viejo"
+SET serveroutput ON;
+/
+DECLARE
+  estatus VARCHAR2(20);
+  CURSOR repo
+  IS
+    SELECT * FROM dance;
+BEGIN
+  FOR fila IN repo
+  LOOP
+    IF fila.edad<18 THEN
+      estatus  :='precoz';
+      dbms_output.put_line('nombre '||fila.nombre||' edad '||fila.edad||' estatus '||estatus);
+    ELSE
+      estatus:='viejo';
+      dbms_output.put_line('nombre '||fila.nombre||' edad '||fila.edad||' estatus '||estatus);
+    END IF;
+  END LOOP;
+END;
+/
+--imprimier el siguiente esquema crear las tablas de trabajador y nomina con sus campos
+--se puede hacer el primary key como en mysql SEGURO INTEGER PRIMARY KEY
+CREATE TABLE trabajador
+  (
+    seguro INTEGER,
+    nombre VARCHAR2(25),
+    edad   INTEGER,
+    CONSTRAINT pk_seguro PRIMARY KEY (seguro)
+  );
+/
+CREATE TABLE nomina
+  (
+    id_nomina INTEGER,
+    seguro    INTEGER,
+    sueldo_base FLOAT,
+    horas_laboradas INTEGER,
+    fecha_pago      DATE,
+    CONSTRAINT pk_id_nomina PRIMARY KEY(id_nomina),
+    CONSTRAINT fk_seguro FOREIGN KEY (seguro) REFERENCES trabajador(seguro)
+  );
+/
+CREATE sequence sec_nomina start with 1 increment BY 1 nomaxvalue;
+  /
+  DECLARE
+    valor INTEGER;
+  BEGIN
+    generar_trabajador(1, 'Ana', 28, valor, 6000);
+    generar_trabajador(2, 'Pedro', 40, valor, 8000);
+    generar_trabajador(3, 'Juan', 35, valor, 7000);
+    generar_trabajador(4, 'Karla', 41, valor, 10000);
+  END;
+  /
+  SELECT * FROM trabajador;
+  /
+CREATE OR REPLACE
+PROCEDURE guardar_nom(
+    my_id_nomina OUT INTEGER,
+    my_seguro  IN INTEGER,
+    my_sueldoB IN INTEGER)
+AS
+BEGIN
+  SELECT sec_nomina.nextval INTO my_id_nomina FROM dual;
+  INSERT
+  INTO nomina
+    (
+      id_nomina,
+      seguro,
+      sueldo_base
+    )
+    VALUES
+    (
+      my_id_nomina,
+      my_seguro,
+      my_sueldoB
+    );
+END;
+/
+CREATE OR REPLACE
+PROCEDURE generar_trabajador
+  (
+    my_seguro IN INTEGER,
+    my_nombre IN VARCHAR2,
+    my_edad   IN INTEGER,
+    my_id_nomina OUT INTEGER,
+    my_sueldoB IN FLOAT
+  )
+AS
+BEGIN
+  INSERT INTO trabajador VALUES
+    (my_seguro,my_nombre,my_edad
+    );
+  guardar_nom(my_id_nomina,my_seguro,my_sueldoB);
+END;
+/
+--estructura de un cursor basico
+DECLARE
+  CURSOR cur_1
+  IS
+    SELECT * FROM trabajador;
+BEGIN
+  FOR fila IN cur_1
+  LOOP
+    dbms_output.put_line('nombre '||fila.nombre||' edad '||fila.edad);
+  END LOOP;
+END;
+/
+DECLARE
+  CURSOR cur_1
+  IS
+    SELECT * FROM trabajador;
+  CURSOR cur_2
+  IS
+    SELECT * FROM nomina;
+BEGIN
+  FOR fila IN cur_1
+  LOOP
+    FOR fil IN cur_2
+    LOOP
+      IF fila.seguro = fil.seguro THEN
+        dbms_output.put_line('nombre '||fila.nombre||' edad '||fila.edad||' sueldo base '||fil.sueldo_base);
+      END IF;
+    END LOOP;
+  END LOOP;
+END;
+/
+--en una sola tabla puedes colocar el update
+DECLARE
+  CURSOR upd
+  IS
+    SELECT * FROM nomina FOR UPDATE;
+BEGIN
+  FOR fila IN upd
+  LOOP
+    UPDATE nomina SET horas_laboradas=40 WHERE CURRENT OF upd;
+  END LOOP;
+END;
+/
+SELECT * FROM nomina
