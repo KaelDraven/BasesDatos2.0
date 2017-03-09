@@ -1,0 +1,15 @@
+create table usuario_xxx(
+id integer,
+nombre varchar2(40),
+edad integer,
+constraint PK_id primary key (id)
+)
+/
+create or replace trigger disp_usuario_xxx before insert on usuario_xxx
+for each row
+begin
+if :NEW.edad < 18 then 
+raise_application_error(-200001,'estas chavo');
+end if;
+end;
+/
