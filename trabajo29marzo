@@ -1,0 +1,67 @@
+create table alumno(num_cuenta integer, nombre varchar2(25),paterno varchar2(25),
+constraint PK_num_cuenta primary key (num_cuenta));
+create table materia2(id_materia integer, nombre varchar2(120),
+ constraint PK_id_materia primary key (id_materia));
+create table evaluaciones(num_cuenta integer, id_materia integer, calificacion float, estatus char,
+            constraint FK_num_cuenta foreign key (num_cuenta) references alumno(num_cuenta),
+            constraint FK_id_materia foreign key (id_materia) references materia2(id_materia));
+/
+--guardar los siguientes datos Alumno 123,juan,torres// 456,daniela,meza// 789,armando,cardenas
+--materia 1,base de datosII// 2,negocios electronicos// 3,metodologia estructurada
+
+insert into alumno values(123,'Juan','Torres');
+insert into alumno values(456,'Daniela','Meza');
+insert into alumno values(789,'Armando','Cardenas');
+-- estos no morro son con el procedimiento 
+insert into materia values(1,'Base de DatosII');
+insert into materia values(2,'Negocios Electronicos');
+insert into materia values(3,'Metodologia Estructurada');
+/
+select * from alumno;
+select * from materia;
+select * from evaluacion;
+set serveroutput on;
+/
+create sequence sec_mat
+start with 1
+increment by 1
+nomaxvalue;
+/
+create or replace procedure guardar_mat(
+my_id_materia out integer,
+my_nombre in varchar2
+)
+as begin select sec_mat.nextval into my_id_materia from dual;
+insert into materia values(my_id_materia,my_nombre);
+end guardar_mat;
+/
+--mandar llamar el procedimiento
+delete  from materia;
+/
+declare
+valor integer;
+begin
+guardar_mat(valor,'Metodologia Estructurada');
+end;
+/ 
+--generar un disparador que valide los siguiente
+--1 solo esta permitido'A' (para aprobado) y 'R'(para reprobado). si se ingresa otro valor debe mostrar un error
+--2 si el estatus es 'A' y se asigna una calificacion menor a 6 debe marcar error, si el estatis es 'R' y se asigna una calificacion mayor a 5.99 debe marcar error
+create or replace trigger profe before insert on evaluacion
+for each row
+begin
+if :new.calificacion <6 and :new.estatus='A' then
+raise_application_error(-20001,'muy mal chavo si paso el joven');
+else
+if :new.calificacion >5.99 and :new.estatus='R' then
+raise_application_error(-20001,'muy mal chavo no paso el joven');
+end if;
+end if;
+end;
+/
+--probar el disparador del punto anterior con los siguientes valores ordenado el numero de cuenta| id materia| calificacion| estatus***123,1,7.9,A/ 456,2,5,A/ 789,1,4.2,R/ 123,3,8.5,R
+
+insert into evaluacion values(123,1,7.9,A);
+insert into evaluacion values(456,2,5,'A');
+insert into evaluacion values(789,1,4.2,'R');
+insert into evaluacion values(123,3,8.5,'R');
